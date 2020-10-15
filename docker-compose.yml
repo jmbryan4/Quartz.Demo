@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+  quartz.demo:
+    image: ${DOCKER_REGISTRY-}quartzdemo
+    build:
+      context: .
+      dockerfile: Quartz.Demo/Dockerfile
+    depends_on:
+      - quartz-db
+    networks:
+      - backend
+
+  quartz-db:
+    container_name: quartz-postgres
+    image: postgres
+    restart: unless-stopped
+    environment:
+      # change this for a "real" app
+      POSTGRES_PASSWORD: example123!
+      POSTGRES_DB: quartz
+    volumes:
+      - ./postgres-schema:/docker-entrypoint-initdb.d
+    ports:
+      - 54320:5432
+    networks:
+      - backend
+
+  pgadmin:
+    container_name: pgadmin4
+    image: dpage/pgadmin4:latest
+    depends_on:
+      - quartz-db
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: login@email.com
+      PGADMIN_DEFAULT_PASSWORD: letMeIn!
+    ports:
+      - 8082:80
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
